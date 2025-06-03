@@ -4,7 +4,7 @@ const PikiScript = {
   data: null,
   baseUrl: "https://pikidiary-api.vercel.app",
 
-  execute: function(script: string): Promise<string> {
+  execute: function(script) {
     return new Promise((resolve) => {
       this.output = "";
       this.script = script;
@@ -44,7 +44,7 @@ const PikiScript = {
     });
   },
 
-  loadApikiFile: function(file: File | string): Promise<string> {
+  loadApikiFile: function(file) {
     return new Promise((resolve, reject) => {
       let fileName = '';
 
@@ -64,13 +64,13 @@ const PikiScript = {
 
       if (typeof File !== 'undefined' && file instanceof File) {
         const reader = new FileReader();
-        reader.onload = (e) => resolve(e.target?.result as string);
+        reader.onload = (e) => resolve(e.target?.result);
         reader.onerror = (e) => reject(new Error("file reading failed"));
         reader.readAsText(file);
       } else if (typeof require !== 'undefined') {
         try {
           const fs = require('fs');
-          fs.readFile(file, 'utf8', (err: Error, data: string) => {
+          fs.readFile(file, 'utf8', (err, data) => {
             if (err) reject(err);
             else resolve(data);
           });
@@ -83,31 +83,21 @@ const PikiScript = {
     });
   },
 
-  fetchData: function(url: string): Promise<any> {
+  fetchData: function(url) {
     return new Promise((resolve, reject) => {
-      const xhr = new XMLHttpRequest();
-      xhr.open("GET", url, true);
-
-      xhr.setRequestHeader("Accept", "application/json");
-
-      xhr.onload = function() {
-        if (xhr.status >= 200 && xhr.status < 300) {
-          try {
-            const data = JSON.parse(xhr.responseText);
-            resolve(data);
-          } catch (e) {
-            reject(new Error("failed to parse JSON response"));
-          }
-        } else {
-          reject(new Error(`request failed with status ${xhr.status}`));
+      fetch(url, {
+        headers: {
+          "Accept": "application/json"
         }
-      };
-
-      xhr.onerror = function() {
-        reject(new Error("request failed"));
-      };
-
-      xhr.send();
+      })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+      })
+      .then(data => resolve(data))
+      .catch(error => reject(new Error(`request failed: ${error.message}`)));
     });
   },
 
@@ -138,7 +128,7 @@ const PikiScript = {
     }
   },
 
-  addOutput: function(text: string) {
+  addOutput: function(text) {
     this.output += text + "\n";
   }
 };
