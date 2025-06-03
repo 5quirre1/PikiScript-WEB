@@ -35,13 +35,28 @@ var PikiScript = {
                 resolve(_this.output);
             })
                 .catch(function (error) {
-                _this.addOutput("Error: ".concat(error.message));
+                _this.addOutput("error: ".concat(error.message));
                 resolve(_this.output);
             });
         });
     },
     loadApikiFile: function (file) {
         return new Promise(function (resolve, reject) {
+            var fileName = '';
+            if (typeof File !== 'undefined' && file instanceof File) {
+                fileName = file.name;
+            }
+            else if (typeof file === 'string') {
+                fileName = file;
+            }
+            else {
+                reject(new Error("unsupported file type"));
+                return;
+            }
+            if (!fileName.toLowerCase().endsWith('.apiki')) {
+                reject(new Error("file must have a .apiki extension"));
+                return;
+            }
             if (typeof File !== 'undefined' && file instanceof File) {
                 var reader = new FileReader();
                 reader.onload = function (e) { var _a; return resolve((_a = e.target) === null || _a === void 0 ? void 0 : _a.result); };
