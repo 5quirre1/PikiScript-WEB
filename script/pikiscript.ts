@@ -38,7 +38,7 @@ const PikiScript = {
           resolve(this.output);
         })
         .catch(error => {
-          this.addOutput(`Error: ${error.message}`);
+          this.addOutput(`error: ${error.message}`);
           resolve(this.output);
         });
     });
@@ -46,6 +46,22 @@ const PikiScript = {
 
   loadApikiFile: function(file: File | string): Promise<string> {
     return new Promise((resolve, reject) => {
+      let fileName = '';
+
+      if (typeof File !== 'undefined' && file instanceof File) {
+        fileName = file.name;
+      } else if (typeof file === 'string') {
+        fileName = file;
+      } else {
+        reject(new Error("unsupported file type"));
+        return;
+      }
+
+      if (!fileName.toLowerCase().endsWith('.apiki')) {
+        reject(new Error("file must have a .apiki extension"));
+        return;
+      }
+
       if (typeof File !== 'undefined' && file instanceof File) {
         const reader = new FileReader();
         reader.onload = (e) => resolve(e.target?.result as string);
