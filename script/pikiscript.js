@@ -84,27 +84,19 @@ var PikiScript = {
     },
     fetchData: function (url) {
         return new Promise(function (resolve, reject) {
-            var xhr = new XMLHttpRequest();
-            xhr.open("GET", url, true);
-            xhr.setRequestHeader("Accept", "application/json");
-            xhr.onload = function () {
-                if (xhr.status >= 200 && xhr.status < 300) {
-                    try {
-                        var data = JSON.parse(xhr.responseText);
-                        resolve(data);
-                    }
-                    catch (e) {
-                        reject(new Error("failed to parse JSON response"));
-                    }
+            fetch(url, {
+                headers: {
+                    "Accept": "application/json"
                 }
-                else {
-                    reject(new Error("request failed with status ".concat(xhr.status)));
+            })
+                .then(function (response) {
+                if (!response.ok) {
+                    throw new Error("HTTP error! status: ".concat(response.status));
                 }
-            };
-            xhr.onerror = function () {
-                reject(new Error("request failed"));
-            };
-            xhr.send();
+                return response.json();
+            })
+                .then(function (data) { return resolve(data); })
+                .catch(function (error) { return reject(new Error("request failed: ".concat(error.message))); });
         });
     },
     processScript: function () {
